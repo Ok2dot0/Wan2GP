@@ -101,6 +101,8 @@ REM Create cache directories if they don't exist
 echo Creating cache directories...
 if not exist "%USERPROFILE%\.cache\huggingface" mkdir "%USERPROFILE%\.cache\huggingface"
 if not exist "%USERPROFILE%\.cache\torch" mkdir "%USERPROFILE%\.cache\torch"
+if not exist "%USERPROFILE%\.cache\numba" mkdir "%USERPROFILE%\.cache\numba"
+if not exist "%USERPROFILE%\.cache\matplotlib" mkdir "%USERPROFILE%\.cache\matplotlib"
 
 REM Build the Docker image
 echo.
@@ -136,6 +138,8 @@ docker run --rm -it ^
     -v "%CD%:/workspace" ^
     -v "%USERPROFILE%\.cache\huggingface:/home/user/.cache/huggingface" ^
     -v "%USERPROFILE%\.cache\torch:/home/user/.cache/torch" ^
+    -v "%USERPROFILE%\.cache\numba:/home/user/.cache/numba" ^
+    -v "%USERPROFILE%\.cache\matplotlib:/home/user/.cache/matplotlib" ^
     deepbeepmeep/wan2gp ^
     --profile %PROFILE% ^
     --attention sage ^

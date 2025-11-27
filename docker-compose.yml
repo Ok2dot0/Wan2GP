@@ -87,9 +87,9 @@ services:
     # Restart policy
     restart: unless-stopped
     
-    # Health check
+    # Health check using wget (curl is not installed in the image)
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7860/"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:7860/"]
       interval: 30s
       timeout: 10s
       retries: 3

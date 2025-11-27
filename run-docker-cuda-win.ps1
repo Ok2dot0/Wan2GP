@@ -79,15 +79,38 @@ $cudaArch = "8.6"  # Default to Ampere
 
 # Map GPU name to CUDA architecture
 $archMap = @{
-    "5090|5080|5070|RTX 50" = "12.0"  # Blackwell
-    "H100|H800" = "9.0"               # Hopper
-    "4090|4080|4070|4060|RTX 40" = "8.9"  # Ada Lovelace
-    "3090|3080|3070|3060|RTX 30" = "8.6"  # Ampere consumer
-    "A100|A800|A40" = "8.0"           # Ampere data center
-    "2080|2070|2060|RTX 20|Titan RTX" = "7.5"  # Turing
-    "1660|1650|GTX 16" = "7.5"        # Turing
-    "V100" = "7.0"                    # Volta
-    "1080|1070|1060|GTX 10" = "6.1"   # Pascal
+    "5090" = "12.0"  # Blackwell
+    "5080" = "12.0"  # Blackwell
+    "5070" = "12.0"  # Blackwell
+    "RTX 50" = "12.0"  # Blackwell generic
+    "H100" = "9.0"   # Hopper
+    "H800" = "9.0"   # Hopper
+    "4090" = "8.9"   # Ada Lovelace
+    "4080" = "8.9"   # Ada Lovelace
+    "4070" = "8.9"   # Ada Lovelace
+    "4060" = "8.9"   # Ada Lovelace
+    "RTX 40" = "8.9"  # Ada generic
+    "3090" = "8.6"   # Ampere consumer
+    "3080" = "8.6"   # Ampere consumer
+    "3070" = "8.6"   # Ampere consumer
+    "3060" = "8.6"   # Ampere consumer
+    "RTX 30" = "8.6"  # Ampere generic
+    "A100" = "8.0"   # Ampere data center
+    "A800" = "8.0"   # Ampere data center
+    "A40" = "8.0"    # Ampere data center
+    "2080" = "7.5"   # Turing
+    "2070" = "7.5"   # Turing
+    "2060" = "7.5"   # Turing
+    "RTX 20" = "7.5"  # Turing generic
+    "Titan RTX" = "7.5"  # Turing
+    "1660" = "7.5"   # Turing
+    "1650" = "7.5"   # Turing
+    "GTX 16" = "7.5"  # Turing generic
+    "V100" = "7.0"   # Volta
+    "1080" = "6.1"   # Pascal
+    "1070" = "6.1"   # Pascal
+    "1060" = "6.1"   # Pascal
+    "GTX 10" = "6.1"  # Pascal generic
 }
 
 foreach ($pattern in $archMap.Keys) {
@@ -148,12 +171,13 @@ if (-not $NoBuild) {
 }
 
 # Prepare docker run arguments
+$currentPath = (Get-Location).Path
 $dockerArgs = @(
     "run", "--rm", "-it",
     "--name", "wan2gp",
     "--gpus", "all",
     "-p", "${Port}:7860",
-    "-v", "${PWD}:/workspace",
+    "-v", "${currentPath}:/workspace",
     "-v", "$env:USERPROFILE\.cache\huggingface:/home/user/.cache/huggingface",
     "-v", "$env:USERPROFILE\.cache\torch:/home/user/.cache/torch",
     "-v", "$env:USERPROFILE\.cache\numba:/home/user/.cache/numba",

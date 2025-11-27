@@ -16,7 +16,7 @@ This guide covers running WanGP in Docker on Windows systems.
 
 3. **NVIDIA Drivers**
    - Download from: https://www.nvidia.com/Download/index.aspx
-   - Minimum driver version: 520+ for CUDA 12.4 support
+   - Minimum driver version: 550+ for CUDA 12.4 support (check with `nvidia-smi`)
 
 4. **NVIDIA Container Toolkit** (usually included with Docker Desktop)
    - This is typically auto-configured when you install Docker Desktop with GPU support
