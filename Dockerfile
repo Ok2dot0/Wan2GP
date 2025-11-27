@@ -97,8 +97,11 @@ RUN chown -R user:user /workspace
 RUN mkdir /home/user/.cache && \
     chown -R user:user /home/user/.cache
 
-COPY entrypoint.sh /workspace/entrypoint.sh
-RUN chmod +x /workspace/entrypoint.sh
+# Copy entrypoint to /opt (not /workspace) to avoid Windows line ending issues
+# when /workspace is mounted from Windows filesystem
+COPY entrypoint.sh /opt/entrypoint.sh
+RUN chmod +x /opt/entrypoint.sh && \
+    sed -i 's/\r$//' /opt/entrypoint.sh
 
 # Labels for container metadata
 LABEL maintainer="DeepBeepMeep"
@@ -109,4 +112,4 @@ LABEL org.opencontainers.image.source="https://github.com/deepbeepmeep/Wan2GP"
 # Expose the default Gradio port
 EXPOSE 7860
 
-ENTRYPOINT ["/workspace/entrypoint.sh"]
+ENTRYPOINT ["/opt/entrypoint.sh"]

@@ -54,7 +54,7 @@ try {
 
 # Check if nvidia-smi is available
 try {
-    $null = nvidia-smi --version
+    $null = nvidia-smi 2>$null
     Write-Host "[OK] NVIDIA drivers are installed" -ForegroundColor Green
 } catch {
     Write-Host "[ERROR] NVIDIA drivers not found." -ForegroundColor Red
@@ -66,10 +66,43 @@ try {
 Write-Host ""
 Write-Host "Detecting GPU information..." -ForegroundColor Yellow
 
-# Get GPU information
-$gpuName = (nvidia-smi --query-gpu=name --format=csv,noheader,nounits | Select-Object -First 1).Trim()
-$vramMB = [int](nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | Select-Object -First 1)
-$vramGB = [math]::Floor($vramMB / 1024)
+# Get GPU information - use csv format without noheader for better compatibility
+$gpuName = "Unknown GPU"
+$vramGB = 0
+
+try {
+    # Try query-gpu format (works on most versions)
+    $gpuOutput = nvidia-smi --query-gpu=name --format=csv 2>$null
+    if ($gpuOutput -and $gpuOutput.Count -gt 1) {
+        $gpuName = $gpuOutput[1].Trim()
+    } elseif ($gpuOutput -is [string]) {
+        # Single line output - try to parse
+        $lines = $gpuOutput -split "`n" | Where-Object { $_ -notmatch "^name" -and $_.Trim() -ne "" }
+        if ($lines) { $gpuName = $lines[0].Trim() }
+    }
+} catch {
+    Write-Host "[WARN] Could not detect GPU name, using default" -ForegroundColor Yellow
+}
+
+try {
+    $vramOutput = nvidia-smi --query-gpu=memory.total --format=csv 2>$null
+    if ($vramOutput -and $vramOutput.Count -gt 1) {
+        # Extract numeric value (removes " MiB" suffix)
+        $vramStr = $vramOutput[1].Trim()
+        if ($vramStr -match "(\d+)") {
+            $vramMB = [int]$Matches[1]
+            $vramGB = [math]::Floor($vramMB / 1024)
+        }
+    } elseif ($vramOutput -is [string]) {
+        $lines = $vramOutput -split "`n" | Where-Object { $_ -notmatch "memory" -and $_.Trim() -ne "" }
+        if ($lines -and $lines[0] -match "(\d+)") {
+            $vramMB = [int]$Matches[1]
+            $vramGB = [math]::Floor($vramMB / 1024)
+        }
+    }
+} catch {
+    Write-Host "[WARN] Could not detect VRAM, using default profile" -ForegroundColor Yellow
+}
 
 Write-Host "[INFO] Detected GPU: $gpuName" -ForegroundColor Cyan
 Write-Host "[INFO] VRAM: ${vramGB} GB" -ForegroundColor Cyan
@@ -170,10 +203,18 @@ if (-not $NoBuild) {
     Write-Host ""
 }
 
-# Prepare docker run arguments
+# Check if container already exists and remove it
+$existingContainer = docker container inspect wan2gp 2>$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "[INFO] Existing container found. Stopping and removing..." -ForegroundColor Yellow
+    docker stop wan2gp 2>$null | Out-Null
+    docker rm wan2gp 2>$null | Out-Null
+}
+
+# Prepare docker create arguments
 $currentPath = (Get-Location).Path
 $dockerArgs = @(
-    "run", "--rm", "-it",
+    "create", "-it",
     "--name", "wan2gp",
     "--gpus", "all",
     "-p", "${Port}:7860",
@@ -197,16 +238,30 @@ if ($Compile) {
 
 $dockerArgs += "--perc-reserved-mem-max", "1"
 
-# Run the container
+# Create the container
 Write-Host "═══════════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "Starting WanGP container..." -ForegroundColor Cyan
+Write-Host "Creating and starting WanGP container..." -ForegroundColor Cyan
 Write-Host "═══════════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "WanGP will be available at: http://localhost:$Port" -ForegroundColor Green
 Write-Host "Press Ctrl+C to stop the container." -ForegroundColor Yellow
 Write-Host ""
+Write-Host "To restart the container later, use: docker start -ai wan2gp" -ForegroundColor White
+Write-Host ""
 
 & docker $dockerArgs
 
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] Failed to create container!" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "[OK] Container created successfully!" -ForegroundColor Green
+Write-Host ""
+
+# Start the container
+docker start -ai wan2gp
+
 Write-Host ""
 Write-Host "WanGP container stopped." -ForegroundColor Yellow
+Write-Host "To restart, use: docker start -ai wan2gp" -ForegroundColor White
