@@ -1,0 +1,104 @@
+# WanGP Docker Compose Configuration
+# ===================================
+# Cross-platform Docker deployment for WanGP
+#
+# Usage:
+#   docker-compose up --build      # Build and start
+#   docker-compose up              # Start (after initial build)
+#   docker-compose down            # Stop and remove container
+#
+# For Windows users:
+#   - Make sure Docker Desktop is installed with WSL2 backend
+#   - Ensure NVIDIA Container Toolkit is enabled in Docker Desktop settings
+#
+# For Linux users:
+#   - Make sure nvidia-docker2 or nvidia-container-toolkit is installed
+#   - Run: docker-compose up --build
+#
+# Environment Variables (optional):
+#   CUDA_ARCH      - Override CUDA architecture (e.g., "8.9" for RTX 40XX)
+#   WGP_PROFILE    - Memory profile (1-5, default: 4)
+#   WGP_ATTENTION  - Attention mode (sdpa, sage, flash, default: sage)
+#   WGP_PORT       - Host port (default: 7860)
+
+version: '3.8'
+
+services:
+  wan2gp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Default to Ampere architecture (RTX 30XX)
+        # Override with: CUDA_ARCH=8.9 docker-compose up --build
+        CUDA_ARCHITECTURES: ${CUDA_ARCH:-8.6}
+    
+    image: deepbeepmeep/wan2gp:latest
+    container_name: wan2gp
+    
+    # Enable NVIDIA GPU support
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    
+    # For older docker-compose versions, use this instead:
+    # runtime: nvidia
+    
+    ports:
+      - "${WGP_PORT:-7860}:7860"
+    
+    volumes:
+      # Mount current directory as workspace
+      - .:/workspace
+      
+      # Mount cache directories for model persistence
+      # Windows paths use %USERPROFILE%, Linux/Mac use $HOME or ~
+      - ${HF_CACHE:-~/.cache/huggingface}:/home/user/.cache/huggingface
+      - ${TORCH_CACHE:-~/.cache/torch}:/home/user/.cache/torch
+      - ${NUMBA_CACHE:-~/.cache/numba}:/home/user/.cache/numba
+      - ${MATPLOTLIB_CACHE:-~/.cache/matplotlib}:/home/user/.cache/matplotlib
+    
+    environment:
+      # Performance settings
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
+      - TORCH_ALLOW_TF32_CUBLAS=1
+      - TORCH_ALLOW_TF32_CUDNN=1
+      
+      # Audio disabled in container (common for Docker deployments)
+      - SDL_AUDIODRIVER=dummy
+      - WAN2GP_DISABLE_AUDIO=1
+    
+    # Default command with configurable options
+    command: >
+      --profile ${WGP_PROFILE:-4}
+      --attention ${WGP_ATTENTION:-sage}
+      --perc-reserved-mem-max 1
+      --listen
+    
+    # Interactive terminal support
+    stdin_open: true
+    tty: true
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# Optional: Named volumes for persistent storage
+# Uncomment and modify if you prefer named volumes over bind mounts
+# volumes:
+#   huggingface_cache:
+#   torch_cache:
+#   numba_cache:
+#   matplotlib_cache:

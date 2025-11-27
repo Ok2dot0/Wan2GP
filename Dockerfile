@@ -1,5 +1,10 @@
 FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# WanGP Docker Image
+# Cross-platform support for Linux and Windows (via Docker Desktop/WSL2)
+# ═══════════════════════════════════════════════════════════════════════════════
+
 # Build arg for GPU architectures - specify which CUDA compute capabilities to compile for
 # Common values:
 #   7.0  - Tesla V100
@@ -22,11 +27,16 @@ ARG CUDA_ARCHITECTURES="8.0;8.6"
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies
-RUN apt update && \
-    apt install -y \
-    python3 python3-pip git wget curl cmake ninja-build \
-    libgl1 libglib2.0-0 ffmpeg && \
-    apt clean
+# Note: These packages are required for video processing, GUI rendering, and general functionality
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3 python3-pip python3-dev \
+    git wget curl \
+    cmake ninja-build build-essential \
+    libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev \
+    ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
 
@@ -88,5 +98,15 @@ RUN mkdir /home/user/.cache && \
     chown -R user:user /home/user/.cache
 
 COPY entrypoint.sh /workspace/entrypoint.sh
+RUN chmod +x /workspace/entrypoint.sh
+
+# Labels for container metadata
+LABEL maintainer="DeepBeepMeep"
+LABEL description="WanGP - Video Generative Models for GPU Poor"
+LABEL version="1.0"
+LABEL org.opencontainers.image.source="https://github.com/deepbeepmeep/Wan2GP"
+
+# Expose the default Gradio port
+EXPOSE 7860
 
 ENTRYPOINT ["/workspace/entrypoint.sh"]
