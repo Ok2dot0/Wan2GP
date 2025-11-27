@@ -26,6 +26,7 @@ audio-separator==0.36.1
 
 # UI & interaction
 gradio==5.29.0
+uvicorn>=0.30.0  # For HTTP API server
 dashscope
 loguru
 s3tokenizer
