@@ -76,8 +76,8 @@ try {
     if ($gpuOutput -and $gpuOutput.Count -gt 1) {
         $gpuName = $gpuOutput[1].Trim()
     } elseif ($gpuOutput -is [string]) {
-        # Single line output - try to parse
-        $lines = $gpuOutput -split "`n" | Where-Object { $_ -notmatch "^name" -and $_.Trim() -ne "" }
+        # Single line output - try to parse (use case-insensitive matching for header)
+        $lines = $gpuOutput -split "`n" | Where-Object { $_ -notmatch "(?i)^name" -and $_.Trim() -ne "" }
         if ($lines) { $gpuName = $lines[0].Trim() }
     }
 } catch {
@@ -94,7 +94,8 @@ try {
             $vramGB = [math]::Floor($vramMB / 1024)
         }
     } elseif ($vramOutput -is [string]) {
-        $lines = $vramOutput -split "`n" | Where-Object { $_ -notmatch "memory" -and $_.Trim() -ne "" }
+        # Use case-insensitive matching for header
+        $lines = $vramOutput -split "`n" | Where-Object { $_ -notmatch "(?i)memory" -and $_.Trim() -ne "" }
         if ($lines -and $lines[0] -match "(\d+)") {
             $vramMB = [int]$Matches[1]
             $vramGB = [math]::Floor($vramMB / 1024)
