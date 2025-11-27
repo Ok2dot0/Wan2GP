@@ -11,6 +11,7 @@ WanGP supports the Wan (and derived models), Hunyuan Video and LTV Video models 
 - Support for AMD GPUs Radeon RX 76XX, 77XX, 78XX & 79XX, instructions in the Installation Section Below.
 - Very Fast on the latest GPUs
 - Easy to use Full Web based interface
+- HTTP API for programmatic access and automation
 - Auto download of the required model adapted to your specific architecture
 - Tools integrated to facilitate Video Generation : Mask Editor, Prompt Enhancer, Temporal and Spatial Generation, MMAudio, Video Browser, Pose / Depth / Flow extractor
 - Loras Support to customize each model
@@ -218,6 +219,17 @@ python wgp.py
 
 First time using WanGP ? Just check the *Guides* tab, and you will find a selection of recommended models to use.
 
+**Run with HTTP API:**
+```bash
+# With Gradio UI + API
+python wgp.py --api
+
+# API-only mode (headless)
+python wgp.py --api-only
+```
+
+The API provides programmatic access at `http://localhost:7860/api/v1/` with interactive documentation at `/api/docs`. See the [HTTP API documentation](docs/API.md) for details.
+
 **Update the application:**
 If using Pinokio use Pinokio to update otherwise:
 Get in the directory where WanGP is installed and:
@@ -282,6 +294,7 @@ For detailed installation instructions for different GPU generations:
 - **[Finetunes](docs/FINETUNES.md)** - Add manually new models to WanGP
 - **[VACE ControlNet](docs/VACE.md)** - Advanced video control and manipulation
 - **[Command Line Reference](docs/CLI.md)** - All available command line options
+- **[HTTP API](docs/API.md)** - Programmatic access for automation and integrations
 
 ## 📚 Documentation
 
