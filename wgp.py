@@ -2053,6 +2053,18 @@ def _parse_args():
     help="vae config mode"
     )    
 
+    parser.add_argument(
+        "--api",
+        action="store_true",
+        help="Enable HTTP API endpoints at /api/v1/"
+    )
+
+    parser.add_argument(
+        "--api-only",
+        action="store_true",
+        help="Run in API-only mode (no Gradio UI)"
+    )
+
     args = parser.parse_args()
 
     return args
@@ -10679,6 +10691,64 @@ def create_ui():
             stats_app.setup_events(main, state)
         return main
 
+
+def get_wgp_globals_for_api():
+    """Get the globals dict needed for API initialization"""
+    return {
+        "WanGP_version": WanGP_version,
+        "displayed_model_types": displayed_model_types,
+        "transformer_type": transformer_type,
+        "get_model_def": get_model_def,
+        "get_model_name": get_model_name,
+        "get_model_family": get_model_family,
+        "get_default_settings": get_default_settings,
+        "test_class_i2v": test_class_i2v,
+        "test_class_t2v": test_class_t2v,
+        "add_video_task": add_video_task,
+        "save_path": save_path,
+        "image_save_path": image_save_path,
+        "server_config": server_config,
+        "task_id": task_id,
+        "_api_state": None,  # Will be initialized by API
+    }
+
+
+def run_api_only_server(server_name: str, server_port: int):
+    """Run the API server without Gradio UI"""
+    import uvicorn
+    from fastapi import FastAPI
+    from api.wgp_api import create_api_router
+    
+    api_app = FastAPI(
+        title="WanGP API",
+        description="HTTP API for WanGP video generation application",
+        version="1.0.0"
+    )
+    
+    # Create and configure router
+    router = create_api_router()
+    router.set_wgp_globals(get_wgp_globals_for_api())
+    api_app.include_router(router)
+    
+    # Add OpenAPI docs
+    @api_app.get("/docs", include_in_schema=False)
+    async def api_docs():
+        from fastapi.openapi.docs import get_swagger_ui_html
+        return get_swagger_ui_html(
+            openapi_url="/openapi.json",
+            title="WanGP API Documentation"
+        )
+    
+    print(f"\n{'='*60}")
+    print(f"WanGP API Server v{WanGP_version}")
+    print(f"{'='*60}")
+    print(f"API running at: http://{server_name}:{server_port}/api/v1/")
+    print(f"API Documentation: http://{server_name}:{server_port}/docs")
+    print(f"{'='*60}\n")
+    
+    uvicorn.run(api_app, host=server_name, port=server_port)
+
+
 if __name__ == "__main__":
     app = WAN2GPApplication()
     atexit.register(autosave_queue)
@@ -10692,13 +10762,33 @@ if __name__ == "__main__":
     if args.listen:
         server_name = "0.0.0.0"
     if len(server_name) == 0:
-        server_name = os.getenv("SERVER_NAME", "localhost")      
-    demo = create_ui()
-    if args.open_browser:
-        import webbrowser 
-        if server_name.startswith("http"):
-            url = server_name 
-        else:
-            url = "http://" + server_name 
-        webbrowser.open(url + ":" + str(server_port), new = 0, autoraise = True)
-    demo.launch(favicon_path="favicon.png", server_name=server_name, server_port=server_port, share=args.share, allowed_paths=list({save_path, image_save_path, "icons"}))
+        server_name = os.getenv("SERVER_NAME", "localhost")
+    
+    # Check if running in API-only mode
+    if args.api_only:
+        run_api_only_server(server_name, server_port)
+    else:
+        demo = create_ui()
+        
+        # Mount API if enabled
+        if args.api:
+            try:
+                from api.wgp_api import mount_api
+                # Get the underlying FastAPI app from Gradio
+                fastapi_app = demo.app
+                mount_api(fastapi_app, get_wgp_globals_for_api())
+                print(f"\n{'='*60}")
+                print(f"WanGP API enabled at: http://{server_name}:{server_port}/api/v1/")
+                print(f"API Documentation: http://{server_name}:{server_port}/api/docs")
+                print(f"{'='*60}\n")
+            except Exception as e:
+                print(f"Warning: Could not enable API: {e}")
+        
+        if args.open_browser:
+            import webbrowser 
+            if server_name.startswith("http"):
+                url = server_name 
+            else:
+                url = "http://" + server_name 
+            webbrowser.open(url + ":" + str(server_port), new = 0, autoraise = True)
+        demo.launch(favicon_path="favicon.png", server_name=server_name, server_port=server_port, share=args.share, allowed_paths=list({save_path, image_save_path, "icons"}))
