@@ -25,6 +25,8 @@ from io import BytesIO
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Query, File, UploadFile, Form
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
+from fastapi.openapi.utils import get_openapi
 from pydantic import BaseModel, Field
 from PIL import Image
 
@@ -717,10 +719,7 @@ def mount_api(app, wgp_globals: dict):
     # Mount at /api/v1
     app.include_router(router)
     
-    # Add OpenAPI docs
-    from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
-    from fastapi.openapi.utils import get_openapi
-    
+    # Add OpenAPI docs (imports are at module level)
     @app.get("/api/docs", include_in_schema=False)
     async def api_docs():
         return get_swagger_ui_html(
