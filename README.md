@@ -259,17 +259,47 @@ pip install -r requirements.txt
 
 ## 🐳 Docker:
 
-**For Debian-based systems (Ubuntu, Debian, etc.):**
+Docker is the easiest way to run WanGP without dealing with complex dependency installations.
+
+### Linux (Debian/Ubuntu)
 
 ```bash
 ./run-docker-cuda-deb.sh
 ```
 
+### Windows
+
+**Prerequisites:**
+- Docker Desktop for Windows with WSL2 backend
+- NVIDIA GPU drivers (version 520+)
+
+**Option 1: Batch Script (Simplest)**
+```cmd
+run-docker-cuda-win.bat
+```
+
+**Option 2: PowerShell (More Options)**
+```powershell
+.\run-docker-cuda-win.ps1
+
+# With custom options:
+.\run-docker-cuda-win.ps1 -Profile 3 -Attention sage
+```
+
+**Option 3: Docker Compose (Cross-platform)**
+```bash
+docker-compose up --build
+```
+
+For detailed Windows Docker setup, see **[Windows Docker Guide](docs/DOCKER-WINDOWS.md)**
+
+### Docker Features
+
 This automated script will:
 
 - Detect your GPU model and VRAM automatically
 - Select optimal CUDA architecture for your GPU
-- Install NVIDIA Docker runtime if needed
+- Install NVIDIA Docker runtime if needed (Linux)
 - Build a Docker image with all dependencies
 - Run WanGP with optimal settings for your hardware
 
@@ -282,7 +312,7 @@ This automated script will:
 - Automatic cache directory mounting for faster subsequent runs
 - Current directory mounted in container - all downloaded models, loras, generated videos and files are saved locally
 
-**Supported GPUs:** RTX 40XX, RTX 30XX, RTX 20XX, GTX 16XX, GTX 10XX, Tesla V100, A100, H100, and more.
+**Supported GPUs:** RTX 50XX, RTX 40XX, RTX 30XX, RTX 20XX, GTX 16XX, GTX 10XX, Tesla V100, A100, H100, and more.
 
 ## 📦 Installation
 
