@@ -243,7 +243,7 @@ if !errorlevel! equ 0 (
     set "INSTALL_SAGE=1"
     set "SAGE_VERSION=https://github.com/woct0rdho/SageAttention/releases/download/v2.2.0-windows/sageattention-2.2.0+cu128torch2.7.1-cp310-cp310-win_amd64.whl"
     set "INSTALL_TRITON=1"
-    set "TRITON_VERSION="triton-windows<3.4""
+    set "TRITON_VERSION=triton-windows^<3.4"
     goto :gpu_detected
 )
 
@@ -257,7 +257,7 @@ if !errorlevel! equ 0 (
     set "INSTALL_SAGE=1"
     set "SAGE_VERSION=https://github.com/woct0rdho/SageAttention/releases/download/v2.2.0-windows/sageattention-2.2.0+cu128torch2.7.1-cp310-cp310-win_amd64.whl"
     set "INSTALL_TRITON=1"
-    set "TRITON_VERSION="triton-windows<3.4""
+    set "TRITON_VERSION=triton-windows^<3.4"
     goto :gpu_detected
 )
 
@@ -271,7 +271,7 @@ if !errorlevel! equ 0 (
     set "INSTALL_SAGE=1"
     set "SAGE_VERSION=https://github.com/woct0rdho/SageAttention/releases/download/v2.1.1-windows/sageattention-2.1.1+cu126torch2.6.0-cp310-cp310-win_amd64.whl"
     set "INSTALL_TRITON=1"
-    set "TRITON_VERSION="triton-windows<3.3""
+    set "TRITON_VERSION=triton-windows^<3.3"
     goto :gpu_detected
 )
 
@@ -285,7 +285,7 @@ if !errorlevel! equ 0 (
     set "INSTALL_SAGE=1"
     set "SAGE_VERSION=sageattention==1.0.6"
     set "INSTALL_TRITON=1"
-    set "TRITON_VERSION="triton-windows<3.3""
+    set "TRITON_VERSION=triton-windows^<3.3"
     goto :gpu_detected
 )
 
@@ -323,7 +323,7 @@ set "PYTORCH_INDEX=https://download.pytorch.org/whl/cu126"
 set "INSTALL_SAGE=1"
 set "SAGE_VERSION=https://github.com/woct0rdho/SageAttention/releases/download/v2.1.1-windows/sageattention-2.1.1+cu126torch2.6.0-cp310-cp310-win_amd64.whl"
 set "INSTALL_TRITON=1"
-set "TRITON_VERSION="triton-windows<3.3""
+set "TRITON_VERSION=triton-windows^<3.3"
 
 :gpu_detected
 echo.
@@ -431,7 +431,7 @@ if "%INSTALL_TRITON%"=="1" (
     echo Installing Triton...
     echo ===========================================================================
     echo.
-    pip install -U %TRITON_VERSION%
+    pip install -U "%TRITON_VERSION%"
     if !errorlevel! neq 0 (
         echo [WARNING] Failed to install Triton. Continuing without it...
     ) else (
