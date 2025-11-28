@@ -234,7 +234,7 @@ set "SAGE_VERSION="
 set "INSTALL_TRITON=0"
 
 REM RTX 50XX series (Blackwell)
-echo %GPU_NAME% | findstr /i "5090 5080 5070 5060" >nul
+echo %GPU_NAME% | findstr /i "5090 5080 5070 5060 5050 RTX 50" >nul
 if !errorlevel! equ 0 (
     set "GPU_GEN=50XX"
     set "PYTORCH_VERSION=2.7.1"
@@ -243,12 +243,12 @@ if !errorlevel! equ 0 (
     set "INSTALL_SAGE=1"
     set "SAGE_VERSION=https://github.com/woct0rdho/SageAttention/releases/download/v2.2.0-windows/sageattention-2.2.0+cu128torch2.7.1-cp310-cp310-win_amd64.whl"
     set "INSTALL_TRITON=1"
-    set "TRITON_VERSION=triton-windows<3.4"
+    set "TRITON_VERSION=triton-windows^<3.4"
     goto :gpu_detected
 )
 
 REM RTX 40XX series (Ada Lovelace)
-echo %GPU_NAME% | findstr /i "4090 4080 4070 4060 RTX 40" >nul
+echo %GPU_NAME% | findstr /i "4090 4080 4070 4060 4050 RTX 40" >nul
 if !errorlevel! equ 0 (
     set "GPU_GEN=40XX"
     set "PYTORCH_VERSION=2.7.1"
@@ -257,12 +257,12 @@ if !errorlevel! equ 0 (
     set "INSTALL_SAGE=1"
     set "SAGE_VERSION=https://github.com/woct0rdho/SageAttention/releases/download/v2.2.0-windows/sageattention-2.2.0+cu128torch2.7.1-cp310-cp310-win_amd64.whl"
     set "INSTALL_TRITON=1"
-    set "TRITON_VERSION=triton-windows<3.4"
+    set "TRITON_VERSION=triton-windows^<3.4"
     goto :gpu_detected
 )
 
 REM RTX 30XX series (Ampere)
-echo %GPU_NAME% | findstr /i "3090 3080 3070 3060 RTX 30" >nul
+echo %GPU_NAME% | findstr /i "3090 3080 3070 3060 3050 RTX 30" >nul
 if !errorlevel! equ 0 (
     set "GPU_GEN=30XX"
     set "PYTORCH_VERSION=2.6.0"
@@ -271,12 +271,12 @@ if !errorlevel! equ 0 (
     set "INSTALL_SAGE=1"
     set "SAGE_VERSION=https://github.com/woct0rdho/SageAttention/releases/download/v2.1.1-windows/sageattention-2.1.1+cu126torch2.6.0-cp310-cp310-win_amd64.whl"
     set "INSTALL_TRITON=1"
-    set "TRITON_VERSION=triton-windows<3.3"
+    set "TRITON_VERSION=triton-windows^<3.3"
     goto :gpu_detected
 )
 
 REM RTX 20XX series (Turing)
-echo %GPU_NAME% | findstr /i "2080 2070 2060 RTX 20 Titan RTX" >nul
+echo %GPU_NAME% | findstr /i "2080 2070 2060 RTX 20 Titan RTX Quadro RTX" >nul
 if !errorlevel! equ 0 (
     set "GPU_GEN=20XX"
     set "PYTORCH_VERSION=2.6.0"
@@ -285,12 +285,12 @@ if !errorlevel! equ 0 (
     set "INSTALL_SAGE=1"
     set "SAGE_VERSION=sageattention==1.0.6"
     set "INSTALL_TRITON=1"
-    set "TRITON_VERSION=triton-windows<3.3"
+    set "TRITON_VERSION=triton-windows^<3.3"
     goto :gpu_detected
 )
 
 REM GTX 16XX series (Turing)
-echo %GPU_NAME% | findstr /i "1660 1650 GTX 16" >nul
+echo %GPU_NAME% | findstr /i "1660 1650 1630 GTX 16" >nul
 if !errorlevel! equ 0 (
     set "GPU_GEN=16XX"
     set "PYTORCH_VERSION=2.6.0"
@@ -302,7 +302,7 @@ if !errorlevel! equ 0 (
 )
 
 REM GTX 10XX series (Pascal)
-echo %GPU_NAME% | findstr /i "1080 1070 1060 GTX 10" >nul
+echo %GPU_NAME% | findstr /i "1080 1070 1060 1050 1030 GTX 10" >nul
 if !errorlevel! equ 0 (
     set "GPU_GEN=10XX"
     set "PYTORCH_VERSION=2.6.0"
@@ -316,6 +316,14 @@ if !errorlevel! equ 0 (
 REM Default to RTX 30XX settings if unknown
 echo [WARNING] GPU not recognized: %GPU_NAME%
 echo           Using default RTX 30XX settings.
+set "GPU_GEN=30XX"
+set "PYTORCH_VERSION=2.6.0"
+set "CUDA_VERSION=cu126"
+set "PYTORCH_INDEX=https://download.pytorch.org/whl/cu126"
+set "INSTALL_SAGE=1"
+set "SAGE_VERSION=https://github.com/woct0rdho/SageAttention/releases/download/v2.1.1-windows/sageattention-2.1.1+cu126torch2.6.0-cp310-cp310-win_amd64.whl"
+set "INSTALL_TRITON=1"
+set "TRITON_VERSION=triton-windows^<3.3"
 
 :gpu_detected
 echo.
@@ -423,7 +431,7 @@ if "%INSTALL_TRITON%"=="1" (
     echo Installing Triton...
     echo ===========================================================================
     echo.
-    pip install -U %TRITON_VERSION%
+    pip install -U "%TRITON_VERSION%"
     if !errorlevel! neq 0 (
         echo [WARNING] Failed to install Triton. Continuing without it...
     ) else (

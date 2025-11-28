@@ -14,8 +14,17 @@ from tqdm import tqdm
 
 from ..utils.dist_utils import local_rank, world_size
 
-scratch_path = Path(os.environ['SLURM_SCRATCH'] if 'SLURM_SCRATCH' in os.environ else '/dev/shm')
-shm_path = Path('/dev/shm')
+# Use /dev/shm on Linux for shared memory, fall back to temp directory on Windows
+def _get_default_scratch_path():
+    if 'SLURM_SCRATCH' in os.environ:
+        return Path(os.environ['SLURM_SCRATCH'])
+    elif os.name != 'nt' and Path('/dev/shm').exists():
+        return Path('/dev/shm')
+    else:
+        return Path(tempfile.gettempdir())
+
+scratch_path = _get_default_scratch_path()
+shm_path = scratch_path  # Use the same fallback logic for shared memory path
 
 log = logging.getLogger()
 
