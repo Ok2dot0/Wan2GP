@@ -1,19 +1,19 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM ═══════════════════════════════════════════════════════════════════════════
+REM ===========================================================================
 REM WanGP Docker Launcher for Windows
-REM ═══════════════════════════════════════════════════════════════════════════
+REM ===========================================================================
 REM This script builds and runs WanGP in a Docker container on Windows.
 REM Requirements:
 REM   - Docker Desktop with WSL2 backend
 REM   - NVIDIA GPU with CUDA support
 REM   - NVIDIA Container Toolkit (comes with Docker Desktop for Windows)
-REM ═══════════════════════════════════════════════════════════════════════════
+REM ===========================================================================
 
-echo ═══════════════════════════════════════════════════════════════════════════
+echo ===========================================================================
 echo  WanGP Docker Launcher for Windows
-echo ═══════════════════════════════════════════════════════════════════════════
+echo ===========================================================================
 echo.
 
 REM Check if Docker is available
@@ -122,9 +122,9 @@ if not exist "%USERPROFILE%\.cache\matplotlib" mkdir "%USERPROFILE%\.cache\matpl
 
 REM Build the Docker image
 echo.
-echo ═══════════════════════════════════════════════════════════════════════════
+echo ===========================================================================
 echo Building Docker image (this may take a while on first run)...
-echo ═══════════════════════════════════════════════════════════════════════════
+echo ===========================================================================
 echo.
 
 docker build --build-arg CUDA_ARCHITECTURES="%CUDA_ARCH%" -t deepbeepmeep/wan2gp .
@@ -147,9 +147,9 @@ if %errorlevel% equ 0 (
 )
 
 REM Create and run the container
-echo ═══════════════════════════════════════════════════════════════════════════
+echo ===========================================================================
 echo Creating and starting WanGP container...
-echo ═══════════════════════════════════════════════════════════════════════════
+echo ===========================================================================
 echo.
 echo WanGP will be available at: http://localhost:7860
 echo Press Ctrl+C to stop the container.

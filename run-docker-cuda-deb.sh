@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ───────────────────────── helpers ─────────────────────────
+# ------------------------- helpers -------------------------
 
 install_nvidia_smi_if_missing() {
     if command -v nvidia-smi &>/dev/null; then
         return
     fi
 
-    echo "⚠️  nvidia-smi not found. Installing nvidia-utils…"
+    echo "[WARN] nvidia-smi not found. Installing nvidia-utils..."
     if [ "$EUID" -ne 0 ]; then
         SUDO='sudo'
     else
@@ -19,10 +19,10 @@ install_nvidia_smi_if_missing() {
     $SUDO apt-get install -y nvidia-utils-535 || $SUDO apt-get install -y nvidia-utils
 
     if ! command -v nvidia-smi &>/dev/null; then
-        echo "❌ Failed to install nvidia-smi. Cannot detect GPU architecture."
+        echo "[ERROR] Failed to install nvidia-smi. Cannot detect GPU architecture."
         exit 1
     fi
-    echo "✅ nvidia-smi installed successfully."
+    echo "[OK] nvidia-smi installed successfully."
 }
 
 detect_gpu_name() {
@@ -44,7 +44,7 @@ map_gpu_to_arch() {
     *"GTX 10"* | *"1080"* | *"1070"* | *"1060"* | *"Tesla P100"*) echo "6.1" ;;
     *"Tesla K80"* | *"Tesla K40"*) echo "3.7" ;;
     *)
-        echo "❌ Unknown GPU model: $name"
+        echo "[ERROR] Unknown GPU model: $name"
         echo "Please update the map_gpu_to_arch function for this model."
         exit 1
         ;;
@@ -112,38 +112,38 @@ map_gpu_to_profile() {
     esac
 }
 
-# ───────────────────────── main ────────────────────────────
+# ------------------------- main ----------------------------
 
-echo "🔧 NVIDIA CUDA Setup Check:"
+echo "[INFO] NVIDIA CUDA Setup Check:"
 
 # NVIDIA driver check
 if command -v nvidia-smi &>/dev/null; then
     DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader,nounits | head -1)
-    echo "✅ NVIDIA Driver: $DRIVER_VERSION"
+    echo "[OK] NVIDIA Driver: $DRIVER_VERSION"
     
     # Quick CUDA 12.4 compatibility check
     if [[ "$DRIVER_VERSION" =~ ^([0-9]+) ]]; then
         MAJOR=${BASH_REMATCH[1]}
         if [ "$MAJOR" -lt 520 ]; then
-            echo "⚠️  Driver $DRIVER_VERSION may not support CUDA 12.4 (need 520+)"
+            echo "[WARN] Driver $DRIVER_VERSION may not support CUDA 12.4 (need 520+)"
         fi
     fi
 else
-    echo "❌ nvidia-smi not found - no NVIDIA drivers"
+    echo "[ERROR] nvidia-smi not found - no NVIDIA drivers"
     exit 1
 fi
 
 GPU_NAME=$(detect_gpu_name)
-echo "🔍 Detected GPU: $GPU_NAME"
+echo "[INFO] Detected GPU: $GPU_NAME"
 
 VRAM_GB=$(get_gpu_vram)
-echo "🧠 Detected VRAM: ${VRAM_GB}GB"
+echo "[INFO] Detected VRAM: ${VRAM_GB}GB"
 
 CUDA_ARCH=$(map_gpu_to_arch "$GPU_NAME")
-echo "🚀 Using CUDA architecture: $CUDA_ARCH"
+echo "[INFO] Using CUDA architecture: $CUDA_ARCH"
 
 PROFILE=$(map_gpu_to_profile "$GPU_NAME" "$VRAM_GB")
-echo "⚙️  Selected profile: $PROFILE"
+echo "[INFO] Selected profile: $PROFILE"
 
 docker build --build-arg CUDA_ARCHITECTURES="$CUDA_ARCH" -t deepbeepmeep/wan2gp .
 
@@ -156,7 +156,7 @@ fi
 
 # Ensure NVIDIA runtime is available
 if ! docker info 2>/dev/null | grep -q 'Runtimes:.*nvidia'; then
-    echo "⚠️  NVIDIA Docker runtime not found. Installing nvidia-docker2…"
+    echo "[WARN] NVIDIA Docker runtime not found. Installing nvidia-docker2..."
     $SUDO apt-get update
     $SUDO apt-get install -y curl ca-certificates gnupg
     curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | $SUDO apt-key add -
@@ -168,19 +168,19 @@ if ! docker info 2>/dev/null | grep -q 'Runtimes:.*nvidia'; then
         $SUDO tee /etc/apt/sources.list.d/nvidia-docker.list
     $SUDO apt-get update
     $SUDO apt-get install -y nvidia-docker2
-    echo "🔄 Restarting Docker service…"
+    echo "[INFO] Restarting Docker service..."
     $SUDO systemctl restart docker
-    echo "✅ NVIDIA Docker runtime installed."
+    echo "[OK] NVIDIA Docker runtime installed."
 else
-    echo "✅ NVIDIA Docker runtime found."
+    echo "[OK] NVIDIA Docker runtime found."
 fi
 
 # Quick NVIDIA runtime test
-echo "🧪 Testing NVIDIA runtime..."
+echo "[TEST] Testing NVIDIA runtime..."
 if timeout 15s docker run --rm --gpus all --runtime=nvidia nvidia/cuda:12.4-runtime-ubuntu22.04 nvidia-smi >/dev/null 2>&1; then
-    echo "✅ NVIDIA runtime working"
+    echo "[OK] NVIDIA runtime working"
 else
-    echo "❌ NVIDIA runtime test failed - check driver/runtime compatibility"
+    echo "[ERROR] NVIDIA runtime test failed - check driver/runtime compatibility"
 fi
 
 # Prepare cache dirs & volume mounts
@@ -192,7 +192,7 @@ for d in "${cache_dirs[@]}"; do
     cache_mounts+=(-v "$HOME/.cache/$d:/home/user/.cache/$d")
 done
 
-echo "🔧 Optimization settings:"
+echo "[INFO] Optimization settings:"
 echo "   Profile: $PROFILE"
 
 # Run the container

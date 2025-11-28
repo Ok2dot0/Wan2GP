@@ -34,9 +34,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "═══════════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "===========================================================================" -ForegroundColor Cyan
 Write-Host " WanGP Docker Launcher for Windows (PowerShell)" -ForegroundColor Cyan
-Write-Host "═══════════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "===========================================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Check if Docker is available
@@ -188,9 +188,9 @@ foreach ($dir in $cacheDirs) {
 # Build the Docker image
 if (-not $NoBuild) {
     Write-Host ""
-    Write-Host "═══════════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "===========================================================================" -ForegroundColor Cyan
     Write-Host "Building Docker image (this may take a while on first run)..." -ForegroundColor Cyan
-    Write-Host "═══════════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "===========================================================================" -ForegroundColor Cyan
     Write-Host ""
 
     docker build --build-arg CUDA_ARCHITECTURES="$cudaArch" -t deepbeepmeep/wan2gp .
@@ -240,9 +240,9 @@ if ($Compile) {
 $dockerArgs += "--perc-reserved-mem-max", "1"
 
 # Create the container
-Write-Host "═══════════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "===========================================================================" -ForegroundColor Cyan
 Write-Host "Creating and starting WanGP container..." -ForegroundColor Cyan
-Write-Host "═══════════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "===========================================================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "WanGP will be available at: http://localhost:$Port" -ForegroundColor Green
 Write-Host "Press Ctrl+C to stop the container." -ForegroundColor Yellow
