@@ -41,9 +41,18 @@ if "%ARGS%"=="" (
     set "ATTENTION=sdpa"
     
     REM Check for SageAttention availability using pip
+    REM First check if package is installed
     pip show sageattention >nul 2>&1
     if !errorlevel! equ 0 (
-        set "ATTENTION=sage"
+        REM Check if this is SageAttention 2.x (supports sage2)
+        for /f "tokens=2" %%v in ('pip show sageattention ^| findstr /i "Version"') do (
+            echo %%v | findstr /b "2\." >nul
+            if !errorlevel! equ 0 (
+                set "ATTENTION=sage2"
+            ) else (
+                set "ATTENTION=sage"
+            )
+        )
     )
     
     set "ARGS=--attention !ATTENTION!"

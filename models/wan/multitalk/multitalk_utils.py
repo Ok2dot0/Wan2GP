@@ -1,4 +1,5 @@
 import os
+import tempfile
 from einops import rearrange
 
 import torch
@@ -254,7 +255,7 @@ def cache_video(tensor,
                 retry=5):
     
     # cache file
-    cache_file = osp.join('/tmp', rand_name(
+    cache_file = osp.join(tempfile.gettempdir(), rand_name(
         suffix=suffix)) if save_file is None else save_file
 
     # save to cache

@@ -80,17 +80,17 @@ REM Detect CUDA architecture based on GPU name
 set "CUDA_ARCH=8.6"
 
 REM RTX 50XX series (Blackwell)
-echo %GPU_NAME% | findstr /i "5090 5080 5070" >nul && set "CUDA_ARCH=12.0"
+echo %GPU_NAME% | findstr /i "5090 5080 5070 5060 5050" >nul && set "CUDA_ARCH=12.0"
 REM RTX 40XX series (Ada Lovelace)
-echo %GPU_NAME% | findstr /i "4090 4080 4070 4060 RTX 40" >nul && set "CUDA_ARCH=8.9"
+echo %GPU_NAME% | findstr /i "4090 4080 4070 4060 4050 RTX 40" >nul && set "CUDA_ARCH=8.9"
 REM RTX 30XX series (Ampere)
-echo %GPU_NAME% | findstr /i "3090 3080 3070 3060 RTX 30" >nul && set "CUDA_ARCH=8.6"
+echo %GPU_NAME% | findstr /i "3090 3080 3070 3060 3050 RTX 30" >nul && set "CUDA_ARCH=8.6"
 REM RTX 20XX series (Turing)
-echo %GPU_NAME% | findstr /i "2080 2070 2060 RTX 20" >nul && set "CUDA_ARCH=7.5"
+echo %GPU_NAME% | findstr /i "2080 2070 2060 RTX 20 Quadro RTX" >nul && set "CUDA_ARCH=7.5"
 REM GTX 16XX series (Turing)
-echo %GPU_NAME% | findstr /i "1660 1650 GTX 16" >nul && set "CUDA_ARCH=7.5"
+echo %GPU_NAME% | findstr /i "1660 1650 1630 GTX 16" >nul && set "CUDA_ARCH=7.5"
 REM GTX 10XX series (Pascal)
-echo %GPU_NAME% | findstr /i "1080 1070 1060 GTX 10" >nul && set "CUDA_ARCH=6.1"
+echo %GPU_NAME% | findstr /i "1080 1070 1060 1050 1030 GTX 10" >nul && set "CUDA_ARCH=6.1"
 REM Data center GPUs
 echo %GPU_NAME% | findstr /i "H100 H800" >nul && set "CUDA_ARCH=9.0"
 echo %GPU_NAME% | findstr /i "A100 A800 A40" >nul && set "CUDA_ARCH=8.0"

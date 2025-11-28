@@ -252,7 +252,7 @@ def save_video(tensor,
         tensor = tensor.unsqueeze(0)
         
     suffix = f'.{container}'
-    cache_file = osp.join('/tmp', rand_name(suffix=suffix)) if save_file is None else save_file
+    cache_file = osp.join(tempfile.gettempdir(), rand_name(suffix=suffix)) if save_file is None else save_file
     if not cache_file.endswith(suffix):
         cache_file = osp.splitext(cache_file)[0] + suffix
     
