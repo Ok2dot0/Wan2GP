@@ -257,6 +257,63 @@ conda activate wan2gp
 pip install -r requirements.txt
 ```
 
+## 🪟 Windows Native Installation (venv)
+
+For Windows users who prefer a native installation without Docker or Conda, use the automated installation script:
+
+### Prerequisites
+
+- [Python 3.10.x](https://www.python.org/ftp/python/3.10.9/python-3.10.9-amd64.exe) - Make sure to check "Add Python to PATH" during installation
+- [Git for Windows](https://git-scm.com/download/win)
+- [NVIDIA GPU drivers](https://www.nvidia.com/en-us/software/nvidia-app/)
+- [CUDA Toolkit 12.6+](https://developer.nvidia.com/cuda-downloads) (recommended)
+- [Build Tools for Visual Studio 2022](https://aka.ms/vs/17/release/vs_BuildTools.exe) with C++ extensions
+
+### Installation
+
+1. **Clone the repository:**
+   ```cmd
+   git clone https://github.com/deepbeepmeep/Wan2GP.git
+   cd Wan2GP
+   ```
+
+2. **Run the installation script:**
+   ```cmd
+   install.bat
+   ```
+
+   The script will automatically:
+   - Detect your GPU model and select the appropriate PyTorch version
+   - Create a Python virtual environment (`venv`)
+   - Install PyTorch with CUDA support
+   - Install Triton and SageAttention (if supported by your GPU)
+   - Install all required dependencies
+
+### Running WanGP
+
+After installation, simply double-click `run.bat` or run:
+```cmd
+run.bat
+```
+
+Or activate the environment manually:
+```cmd
+venv\Scripts\activate
+python wgp.py
+```
+
+WanGP will be available at: http://localhost:7860
+
+### Updating
+
+To update WanGP:
+```cmd
+git pull
+run.bat
+```
+
+If you encounter issues, you can reinstall by deleting the `venv` folder and running `install.bat` again.
+
 ## 🐳 Docker:
 
 Docker is the easiest way to run WanGP without dealing with complex dependency installations.
