@@ -318,6 +318,10 @@ run.bat
 
 If you encounter issues, you can reinstall by deleting the `venv` folder and running `install.bat` again.
 
+### Installing Additional Attention Types
+
+The installation script automatically installs the recommended attention type for your GPU. To install additional attention types (Sage, Sage2, Flash, xformers) for improved performance, see the **[Attention Types Installation Guide](docs/ATTENTION-TYPES-WINDOWS.md)**.
+
 ## 🐳 Docker:
 
 Docker is the easiest way to run WanGP without dealing with complex dependency installations.
@@ -380,6 +384,7 @@ This automated script will:
 ### Nvidia
 For detailed installation instructions for different GPU generations:
 - **[Installation Guide](docs/INSTALLATION.md)** - Complete setup instructions for RTX 10XX to RTX 50XX
+- **[Attention Types Guide](docs/ATTENTION-TYPES-WINDOWS.md)** - Installing attention types (Sage, Flash, xformers) on Windows
 
 ### AMD
 For detailed installation instructions for different GPU generations:
