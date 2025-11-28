@@ -266,7 +266,7 @@ For Windows users who prefer a native installation without Docker or Conda, use 
 - [Python 3.10.x](https://www.python.org/ftp/python/3.10.9/python-3.10.9-amd64.exe) - Make sure to check "Add Python to PATH" during installation
 - [Git for Windows](https://git-scm.com/download/win)
 - [NVIDIA GPU drivers](https://www.nvidia.com/en-us/software/nvidia-app/)
-- [CUDA Toolkit 12.6+](https://developer.nvidia.com/cuda-downloads) (recommended)
+- [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) (12.6+ recommended for best compatibility)
 - [Build Tools for Visual Studio 2022](https://aka.ms/vs/17/release/vs_BuildTools.exe) with C++ extensions
 
 ### Installation
