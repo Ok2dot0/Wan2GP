@@ -94,20 +94,30 @@ except Exception as e:
 echo ""
 echo "🩺 Common Issue Diagnostics:"
 
-# Check if running with proper Docker flags
-if [ ! -e /dev/nvidia0 ] && [ ! -e /dev/nvidiactl ]; then
-    echo "❌ No NVIDIA device nodes - container likely missing --gpus all or --runtime=nvidia"
-fi
+# First check if PyTorch can actually use CUDA - this is the authoritative test
+PYTORCH_CUDA_WORKS=$(python3 -c "import torch; print('yes' if torch.cuda.is_available() and torch.cuda.device_count() > 0 else 'no')" 2>/dev/null)
 
-# Check CUDA library paths
-if [ -z "$LD_LIBRARY_PATH" ] || ! echo "$LD_LIBRARY_PATH" | grep -q cuda; then
-    echo "⚠️  LD_LIBRARY_PATH may not include CUDA libraries"
-fi
+if [ "$PYTORCH_CUDA_WORKS" = "yes" ]; then
+    echo "✅ GPU access confirmed - PyTorch can use CUDA"
+else
+    # Only show detailed diagnostics if PyTorch can't use CUDA
+    # Check if running with proper Docker flags
+    if [ ! -e /dev/nvidia0 ] && [ ! -e /dev/nvidiactl ]; then
+        echo "❌ No NVIDIA device nodes - container likely missing --gpus all or --runtime=nvidia"
+        echo "   Note: On Docker Desktop for Windows (WSL2), device files may not be visible"
+        echo "   but GPU access can still work through WSL2 GPU paravirtualization."
+    fi
 
-# Check permissions on device files
-if ls /dev/nvidia* >/dev/null 2>&1; then
-    if ! ls -la /dev/nvidia* | grep -q "rw-rw-rw-\|rw-r--r--"; then
-        echo "⚠️  NVIDIA device files may have restrictive permissions"
+    # Check CUDA library paths
+    if [ -z "$LD_LIBRARY_PATH" ] || ! echo "$LD_LIBRARY_PATH" | grep -q cuda; then
+        echo "⚠️  LD_LIBRARY_PATH may not include CUDA libraries"
+    fi
+
+    # Check permissions on device files
+    if ls /dev/nvidia* >/dev/null 2>&1; then
+        if ! ls -la /dev/nvidia* | grep -q "rw-rw-rw-\|rw-r--r--"; then
+            echo "⚠️  NVIDIA device files may have restrictive permissions"
+        fi
     fi
 fi
 
