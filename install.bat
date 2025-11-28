@@ -316,6 +316,14 @@ if !errorlevel! equ 0 (
 REM Default to RTX 30XX settings if unknown
 echo [WARNING] GPU not recognized: %GPU_NAME%
 echo           Using default RTX 30XX settings.
+set "GPU_GEN=30XX"
+set "PYTORCH_VERSION=2.6.0"
+set "CUDA_VERSION=cu126"
+set "PYTORCH_INDEX=https://download.pytorch.org/whl/cu126"
+set "INSTALL_SAGE=1"
+set "SAGE_VERSION=https://github.com/woct0rdho/SageAttention/releases/download/v2.1.1-windows/sageattention-2.1.1+cu126torch2.6.0-cp310-cp310-win_amd64.whl"
+set "INSTALL_TRITON=1"
+set "TRITON_VERSION="triton-windows<3.3""
 
 :gpu_detected
 echo.
