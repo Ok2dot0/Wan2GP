@@ -18,21 +18,37 @@ echo  WanGP Windows Native Installation Script
 echo ═══════════════════════════════════════════════════════════════════════════
 echo.
 
-REM Check if Python is available
-python --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [ERROR] Python is not installed or not in PATH.
-    echo Please install Python 3.10.x from:
-    echo   https://www.python.org/ftp/python/3.10.9/python-3.10.9-amd64.exe
-    echo.
-    echo Make sure to check "Add Python to PATH" during installation.
-    pause
-    exit /b 1
+REM Check if Python is available and find the correct version
+set "PYTHON_EXE="
+
+REM First, try to find Python 3.10 specifically using py launcher
+py -3.10 --version >nul 2>&1
+if %errorlevel% equ 0 (
+    set "PYTHON_EXE=py -3.10"
+    goto :python_found
 )
 
+REM Fall back to generic python command
+python --version >nul 2>&1
+if %errorlevel% equ 0 (
+    set "PYTHON_EXE=python"
+    goto :python_found
+)
+
+REM No Python found
+echo [ERROR] Python is not installed or not in PATH.
+echo Please install Python 3.10.x from:
+echo   https://www.python.org/ftp/python/3.10.9/python-3.10.9-amd64.exe
+echo.
+echo Make sure to check "Add Python to PATH" during installation.
+pause
+exit /b 1
+
+:python_found
 REM Check Python version (should be 3.10.x)
-for /f "tokens=2" %%v in ('python --version 2^>^&1') do set PYTHON_VERSION=%%v
+for /f "tokens=2" %%v in ('%PYTHON_EXE% --version 2^>^&1') do set PYTHON_VERSION=%%v
 echo [INFO] Detected Python version: %PYTHON_VERSION%
+echo [INFO] Using Python command: %PYTHON_EXE%
 
 REM Extract major.minor version
 for /f "tokens=1,2 delims=." %%a in ("%PYTHON_VERSION%") do (
@@ -214,15 +230,36 @@ if exist "venv" (
 
 REM Create virtual environment
 echo ═══════════════════════════════════════════════════════════════════════════
-echo Creating virtual environment...
+echo Creating virtual environment with Python %PYTHON_VERSION%...
 echo ═══════════════════════════════════════════════════════════════════════════
 echo.
 
-python -m venv venv
+%PYTHON_EXE% -m venv venv
 if %errorlevel% neq 0 (
     echo [ERROR] Failed to create virtual environment!
     pause
     exit /b 1
+)
+
+REM Verify venv was created with correct Python version
+if not exist "venv\Scripts\python.exe" (
+    echo [ERROR] Virtual environment creation failed - python.exe not found!
+    pause
+    exit /b 1
+)
+
+for /f "tokens=2" %%v in ('venv\Scripts\python.exe --version 2^>^&1') do set VENV_PYTHON_VERSION=%%v
+echo [INFO] Virtual environment Python version: %VENV_PYTHON_VERSION%
+
+REM Extract major.minor from venv Python version for comparison
+for /f "tokens=1,2 delims=." %%a in ("%VENV_PYTHON_VERSION%") do (
+    set VENV_PYTHON_MAJOR=%%a
+    set VENV_PYTHON_MINOR=%%b
+)
+
+if not "%VENV_PYTHON_MAJOR%.%VENV_PYTHON_MINOR%"=="%PYTHON_MAJOR%.%PYTHON_MINOR%" (
+    echo [WARNING] Virtual environment Python version differs from expected!
+    echo           Expected: %PYTHON_MAJOR%.%PYTHON_MINOR%.x, Got: %VENV_PYTHON_VERSION%
 )
 
 echo [OK] Virtual environment created successfully!
