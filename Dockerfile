@@ -48,9 +48,11 @@ RUN pip install --upgrade pip setuptools wheel
 # Install requirements if exists
 RUN pip install -r requirements.txt
 
-# Install PyTorch with CUDA support
+# Install PyTorch with CUDA support (including torchaudio for audio processing)
+# All three packages must be installed together with matching versions to avoid
+# "undefined symbol" errors from version mismatches
 RUN pip install --extra-index-url https://download.pytorch.org/whl/cu124 \
-    torch==2.6.0+cu124 torchvision==0.21.0+cu124
+    torch==2.6.0+cu124 torchvision==0.21.0+cu124 torchaudio==2.6.0+cu124
 
 # Install SageAttention from git (patch GPU detection)
 ENV TORCH_CUDA_ARCH_LIST="${CUDA_ARCHITECTURES}"
