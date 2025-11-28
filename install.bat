@@ -6,10 +6,9 @@ REM WanGP Windows Native Installation Script
 REM ═══════════════════════════════════════════════════════════════════════════
 REM This script installs WanGP natively on Windows using Python venv.
 REM Requirements:
-REM   - Python 3.10.x installed and on PATH
+REM   - Python 3.10.9 (will be installed automatically if not present)
 REM   - NVIDIA GPU with CUDA support
 REM   - NVIDIA drivers installed
-REM   - Git installed (for cloning if needed)
 REM ═══════════════════════════════════════════════════════════════════════════
 
 echo.
@@ -18,54 +17,165 @@ echo  WanGP Windows Native Installation Script
 echo ═══════════════════════════════════════════════════════════════════════════
 echo.
 
-REM Check if Python is available and find the correct version
+REM Python 3.10.9 installer configuration
+set "PYTHON_INSTALLER_URL=https://www.python.org/ftp/python/3.10.9/python-3.10.9-amd64.exe"
+set "PYTHON_INSTALLER=python-3.10.9-amd64.exe"
+
+REM Check if Python 3.10 is available
 set "PYTHON_EXE="
+set "PYTHON_FOUND=0"
 
 REM First, try to find Python 3.10 specifically using py launcher
 py -3.10 --version >nul 2>&1
 if %errorlevel% equ 0 (
     set "PYTHON_EXE=py -3.10"
-    goto :python_found
+    for /f "tokens=2" %%v in ('py -3.10 --version 2^>^&1') do set PYTHON_VERSION=%%v
+    set "PYTHON_FOUND=1"
+    goto :check_python_version
 )
 
-REM Fall back to generic python command
+REM Try default python command and check if it's 3.10
 python --version >nul 2>&1
 if %errorlevel% equ 0 (
-    set "PYTHON_EXE=python"
-    goto :python_found
+    for /f "tokens=2" %%v in ('python --version 2^>^&1') do set TEMP_VERSION=%%v
+    for /f "tokens=1,2 delims=." %%a in ("!TEMP_VERSION!") do (
+        if "%%a"=="3" if "%%b"=="10" (
+            set "PYTHON_EXE=python"
+            set "PYTHON_VERSION=!TEMP_VERSION!"
+            set "PYTHON_FOUND=1"
+            goto :check_python_version
+        )
+    )
 )
 
-REM No Python found
-echo [ERROR] Python is not installed or not in PATH.
-echo Please install Python 3.10.x from:
-echo   https://www.python.org/ftp/python/3.10.9/python-3.10.9-amd64.exe
+:check_python_version
+if "%PYTHON_FOUND%"=="1" (
+    echo [INFO] Found Python %PYTHON_VERSION%
+    
+    REM Verify it's Python 3.10.x
+    for /f "tokens=1,2 delims=." %%a in ("%PYTHON_VERSION%") do (
+        set PYTHON_MAJOR=%%a
+        set PYTHON_MINOR=%%b
+    )
+    
+    if "!PYTHON_MAJOR!"=="3" if "!PYTHON_MINOR!"=="10" (
+        echo [OK] Python 3.10 is installed
+        echo [INFO] Using Python command: %PYTHON_EXE%
+        goto :python_ready
+    )
+)
+
+REM Python 3.10 not found - need to install it
+echo [INFO] Python 3.10 is not installed.
+echo [INFO] WanGP requires Python 3.10.9 specifically for compatibility.
 echo.
-echo Make sure to check "Add Python to PATH" during installation.
-pause
-exit /b 1
+echo ═══════════════════════════════════════════════════════════════════════════
+echo  Installing Python 3.10.9...
+echo ═══════════════════════════════════════════════════════════════════════════
+echo.
 
-:python_found
-REM Check Python version (should be 3.10.x)
-for /f "tokens=2" %%v in ('%PYTHON_EXE% --version 2^>^&1') do set PYTHON_VERSION=%%v
-echo [INFO] Detected Python version: %PYTHON_VERSION%
-echo [INFO] Using Python command: %PYTHON_EXE%
-
-REM Extract major.minor version
-for /f "tokens=1,2 delims=." %%a in ("%PYTHON_VERSION%") do (
-    set PYTHON_MAJOR=%%a
-    set PYTHON_MINOR=%%b
+REM Check if installer already exists
+if exist "%PYTHON_INSTALLER%" (
+    echo [INFO] Python installer already downloaded.
+) else (
+    echo [INFO] Downloading Python 3.10.9 installer...
+    echo [INFO] URL: %PYTHON_INSTALLER_URL%
+    echo.
+    
+    REM Try PowerShell to download
+    powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%PYTHON_INSTALLER_URL%' -OutFile '%PYTHON_INSTALLER%'}" 2>nul
+    
+    if not exist "%PYTHON_INSTALLER%" (
+        REM Try curl as fallback
+        curl -L -o "%PYTHON_INSTALLER%" "%PYTHON_INSTALLER_URL%" 2>nul
+    )
+    
+    if not exist "%PYTHON_INSTALLER%" (
+        echo [ERROR] Failed to download Python installer!
+        echo Please download Python 3.10.9 manually from:
+        echo   %PYTHON_INSTALLER_URL%
+        echo.
+        echo Make sure to check "Add Python to PATH" during installation.
+        pause
+        exit /b 1
+    )
+    
+    echo [OK] Python installer downloaded successfully!
 )
 
-if not "%PYTHON_MAJOR%"=="3" (
-    echo [ERROR] Python 3.x is required, but found Python %PYTHON_MAJOR%.
+echo.
+echo [INFO] Installing Python 3.10.9...
+echo [INFO] This will install Python with the following options:
+echo        - Add Python to PATH
+echo        - Install for all users
+echo        - Include pip
+echo.
+
+REM Install Python silently with required options
+"%PYTHON_INSTALLER%" /passive InstallAllUsers=1 PrependPath=1 Include_pip=1 Include_launcher=1
+
+if %errorlevel% neq 0 (
+    echo [ERROR] Python installation failed!
+    echo Please install Python 3.10.9 manually from:
+    echo   %PYTHON_INSTALLER_URL%
+    echo.
+    echo Make sure to check "Add Python to PATH" during installation.
     pause
     exit /b 1
 )
 
-if not "%PYTHON_MINOR%"=="10" (
-    echo [WARNING] Python 3.10.x is recommended. You have Python %PYTHON_MAJOR%.%PYTHON_MINOR%.
-    echo           Installation will continue, but you may encounter issues.
-    echo.
+echo [OK] Python 3.10.9 installed successfully!
+echo.
+
+REM Update PATH for current session by reading from registry
+echo [INFO] Refreshing environment variables...
+set "SYSTEM_PATH="
+set "USER_PATH="
+for /f "tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYSTEM_PATH=%%b"
+for /f "tokens=2*" %%a in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USER_PATH=%%b"
+
+REM Build PATH carefully to avoid malformed entries
+if defined SYSTEM_PATH (
+    if defined USER_PATH (
+        set "PATH=%SYSTEM_PATH%;%USER_PATH%"
+    ) else (
+        set "PATH=%SYSTEM_PATH%"
+    )
+) else if defined USER_PATH (
+    set "PATH=%USER_PATH%"
+)
+
+REM Verify Python 3.10 is now available
+set "PYTHON_EXE="
+py -3.10 --version >nul 2>&1
+if %errorlevel% equ 0 (
+    set "PYTHON_EXE=py -3.10"
+    for /f "tokens=2" %%v in ('py -3.10 --version 2^>^&1') do set PYTHON_VERSION=%%v
+    goto :python_ready
+)
+
+REM Try the default install location
+if exist "C:\Program Files\Python310\python.exe" (
+    set "PYTHON_EXE=C:\Program Files\Python310\python.exe"
+    for /f "tokens=2" %%v in ('"C:\Program Files\Python310\python.exe" --version 2^>^&1') do set PYTHON_VERSION=%%v
+    goto :python_ready
+)
+
+echo [ERROR] Python 3.10 installation could not be verified.
+echo Please restart your command prompt and run this script again.
+echo If the issue persists, install Python 3.10.9 manually from:
+echo   %PYTHON_INSTALLER_URL%
+pause
+exit /b 1
+
+:python_ready
+echo [INFO] Python %PYTHON_VERSION% is ready
+echo.
+
+REM Set major/minor for later use
+for /f "tokens=1,2 delims=." %%a in ("%PYTHON_VERSION%") do (
+    set PYTHON_MAJOR=%%a
+    set PYTHON_MINOR=%%b
 )
 
 REM Check if nvidia-smi is available
